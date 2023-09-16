@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +59,16 @@ public class MusicService {
         return musicRepository.findAll();
     }
 
-    public boolean findBySongName(String songName) {
-        return musicRepository.findBySongName(songName);
+    public List<TopSong> findBySongName(String songName) {
+        return musicRepository.findBySongName(songName.trim());
     }
-}
+
+    public ArrayList<TopSong> deleteAllSong(List<TopSong> payload) {
+        ArrayList<TopSong> deleteLog = new ArrayList();
+        for (TopSong song : payload) {
+            TopSong deletedSong =  musicRepository.deleteBySongName(song.getSongName());
+            deleteLog.add(deletedSong);
+        }
+
+        return deleteLog;
+    }}

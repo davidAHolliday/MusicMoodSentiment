@@ -36,40 +36,67 @@ public class Controller {
 //    }
 
 
+    @GetMapping("/songs/all")
+    public List<TopSong> getAllSongsInDataBase(){
+        return musicService.getAllSongs();
+    }
+
+    @DeleteMapping("/songs/deleteNull")
+    public List<TopSong> deleteAllLyricNullFromMongo(){
+        List<TopSong> findAllNull = musicService.getAllSongs().stream().filter(x-> x.getLyrics() == null).toList();
+        return musicService.deleteAllSong(findAllNull);
+
+    }
+
+    @GetMapping("/songs/search/{songName}")
+    public List<TopSong> getAllSongsInDataBase(@PathVariable String songName){
+        return musicService.findBySongName(songName);
+    }
+
     @PostMapping("/testMethod")
         public TopSongsPayload testMethod(@RequestBody TopSongsPayload payload) throws IOException, InterruptedException {
             List<TopSong> songToGetLyricsFor = payload.getTopSongs();
             TopSongsPayload response = new TopSongsPayload();
             List<TopSong> proccessedSong = new ArrayList<>();
             for(TopSong song : songToGetLyricsFor){
-                if(musicService.findBySongName(song.getSongName())){
+                List<TopSong> duplicate = musicService.findBySongName(song.getSongName());
+                if(!duplicate.isEmpty()){
                     System.out.println("SONG ALREADY IN SYSTEM");
                     continue;
                 }
                TopSong newSong =  musicService.testAzLyricMethod(song.getArtist(),song.getSongName().trim());
+                Thread.sleep(10000);
                if(newSong.getLyrics() == null){
-                   System.out.println("Lyric could not be scraped");
+//                   System.out.println("Lyric could not be scraped");
+//                   System.out.println("Press Enter to continue");
+                   try{System.in.read();}
+                   catch(Exception e){}
+
 
                    continue;
                }
                 proccessedSong.add(newSong);
                 Thread.sleep(10000);
-                System.out.println("Next Song");
+//                System.out.println("Next Song");
+//                System.out.println("Press Enter to continue");
+                try{System.in.read();}
+                catch(Exception e){}
+
             }
             response.setTopSongs(proccessedSong);
             return response;
 
     }
 
-    @GetMapping("/Top100")
+    @GetMapping("songs/Top100")
 public TopSongsPayload getFullChart() throws IOException { return Scraper.getTop100List();
 }
-    @PostMapping("/addSong")
+    @PostMapping("/songs/addSong")
     public TopSong addLyric(@RequestBody  TopSong songData){
         return musicService.addSong(songData);
     }
 
-    @PostMapping("/addSongBulk")
+    @PostMapping("/songs/addSongBulk")
     public TopSongsPayload addLyric(@RequestBody  TopSongsPayload payload){
         TopSongsPayload songs = payload;
         for(TopSong song: songs.getTopSongs()){
@@ -78,7 +105,7 @@ public TopSongsPayload getFullChart() throws IOException { return Scraper.getTop
         return songs;
     }
 
-    @GetMapping("/findMoodOfTop10")
+    @GetMapping("/songs/findMoodOfTop10")
     public MoodResponse getAllSongs() throws IOException {
         List<TopSong> allSongs = musicService.getAllSongs();
         TopSongsPayload payload = new TopSongsPayload();
